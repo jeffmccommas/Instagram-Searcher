@@ -1,0 +1,21 @@
+
+body {
+  padding: 0;
+}
+
+/* Custom page footer */
+.footer {
+    padding: 20px 15px 0 15px;
+    margin-top: 30px;
+    color: #777;
+    border-top: 1px solid #e5e5e5;
+}
+
+.panel-body img {
+    width: 118px;
+    cursor: pointer;
+    margin: 5px;
+}
+.panel.panel-default {
+    margin-top: 70px;
+}
