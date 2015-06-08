@@ -4,9 +4,10 @@
         .module('app', [
             'ngAnimate',
             'ngResource',
-            'ngMessages'
+            'ngMessages',
+            'restangular'
 
-        ]).controller('InstagramController', function(InstagramService, $sce, $window){
+        ]).controller('InstagramController', function(InstagramService, $sce, $window, instagramAPI){
             var vm = this;
             vm.keyword = '';
             vm.display = false;
@@ -26,9 +27,10 @@
             vm.submit = function () {
                 vm.message = 'Please wait while we get your results';
                 if (!isBlank(vm.keyword)) {
-                    InstagramService.get(vm.keyword).then(function (result) {
-                        vm.data = result.data.data;
-                        vm.count = result.data.data.length;
+                    //clean API call to Instagram via our exposed methods
+                    instagramAPI.queryRecentMedia(vm.keyword).then(function (result) {
+                        vm.data = result.data;
+                        vm.count = result.data.length;
                         vm.display = true;
                         vm.message = 'We found ' + vm.count + ' results for ' + vm.keyword;
                     }).catch(function (error) {
@@ -74,7 +76,29 @@
                     });
                 }
             }
+        }).factory('instagramAPI', function(InstagramRestangularService){
+            /**
+                This factory would expose the Instagram API methods used by the application, I prefer this as my controller
+                doesnt need a chain of .all .one method calls. All of that can be maintained in the factory
+            */
 
+            //For some reason setting default query params for get request is not working with jsonp, so setting it like this
+            var clientId = {client_id: 'bd3de9a0d90f41e8847fa08e838b4a64'};
+
+            return {
+                queryRecentMedia: function(keyword){
+                    return InstagramRestangularService.one('tags', keyword).one('media','recent').get(clientId)
+                }
+            }
+
+        }).factory('InstagramRestangularService', function(Restangular){
+            /**
+                This will return a custom configured Restangular service.
+            */
+            return Restangular.withConfig(function(RestangularConfigurer){
+                RestangularConfigurer.setJsonp(true);
+                RestangularConfigurer.setBaseUrl('https://api.instagram.com/v1/');
+                RestangularConfigurer.setDefaultRequestParams('jsonp', {callback: 'JSON_CALLBACK'});
+            });
         });
 }());
-
